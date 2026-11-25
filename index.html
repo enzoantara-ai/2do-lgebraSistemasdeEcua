@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reto de Sistemas de Ecuaciones · 2.° de Secundaria</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--tx:#1b2430;--mut:#5b6675;--pri:#2a6fb8;--ok:#2f8f2f;--okbg:#e3f5e1;--no:#c0392b;--nobg:#fde6e3;--bd:#d5dde8}
+@media (prefers-color-scheme:dark){:root{--bg:#10151c;--card:#1a222d;--tx:#e8edf3;--mut:#9aa7b8;--pri:#6aa9ec;--ok:#6fd16f;--okbg:#17321a;--no:#ff8b7d;--nobg:#3a1a17;--bd:#2f3b4a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.5 system-ui,Segoe UI,Arial,sans-serif;display:flex;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:640px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+h1{font-size:1.5rem;margin:0 0 6px}
+p{margin:8px 0}.mut{color:var(--mut);font-size:.92rem}
+button{font:inherit;cursor:pointer;border-radius:12px;border:2px solid var(--bd);background:var(--card);color:var(--tx);padding:12px 14px;text-align:left;width:100%;margin:6px 0}
+button:hover:not(:disabled){border-color:var(--pri)}
+button.main{background:var(--pri);color:#fff;border-color:var(--pri);text-align:center;font-weight:700}
+button.ok{background:var(--okbg);border-color:var(--ok)}button.no{background:var(--nobg);border-color:var(--no)}
+button:disabled{cursor:default}
+.top{display:flex;justify-content:space-between;font-size:.95rem;color:var(--mut);margin-bottom:8px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden;margin-bottom:14px}.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.sys{font-family:Consolas,monospace;font-size:1.1rem;border-left:4px solid var(--pri);padding:6px 14px;margin:10px 0;background:var(--bg);border-radius:0 8px 8px 0}
+.fb{margin-top:12px;padding:12px;border-radius:12px;font-size:.95rem}.fb.ok{background:var(--okbg)}.fb.no{background:var(--nobg)}
+.big{font-size:3rem;text-align:center;margin:6px 0}
+input{font:inherit;padding:10px;border-radius:10px;border:2px solid var(--bd);width:100%;background:var(--bg);color:var(--tx)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card" id="app"></div></div>
+<script>
+// Cada pregunta: q (enunciado, admite HTML), s (sistema, opcional), o (opciones; la 1.ª es la correcta), e (explicación)
+const Q=[
+{q:"Resuelve y halla <b>x</b>:",s:"x + y = 7<br>x − y = 3",o:["5","4","2","3"],e:"Reducción: al sumar (I) y (II) queda 2x = 10, así x = 5 (y = 2)."},
+{q:"Calcula <b>x + y</b>:",s:"7x − 4y = 5<br>9x + 8y = 13",o:["3/2","1","2","5/2"],e:"Multiplica (I) por 2 y suma con (II): 23x = 23 → x = 1. Luego y = 1/2. Entonces x + y = 3/2."},
+{q:"Con sustitución, halla <b>y</b>:",s:"5x − 2y = 11<br>x + 3y = 9",o:["2","3","1","4"],e:"De (II): x = 9 − 3y. En (I): 45 − 15y − 2y = 11 → 17y = 34 → y = 2 (x = 3)."},
+{q:"Calcula <b>x² + y²</b>:",s:"x − 3y = 1<br>3x/4 − y = 2",o:["17","13","10","25"],e:"x = 1 + 3y. En (II): 3(1+3y)/4 − y = 2 → 5y = 5 → y = 1, x = 4. Entonces 16 + 1 = 17."},
+{q:"Halla <b>x</b> (usa u = x⁻¹ y v = y⁻¹):",s:"4x⁻¹ − 3y⁻¹ = 14<br>6x⁻¹ + 5y⁻¹ = 2",o:["0,5","0,25","−0,5","2"],e:"Queda 4u − 3v = 14 y 6u + 5v = 2 → u = 2, v = −2. Como u = 1/x, x = 1/2 = 0,5."},
+{q:"¿Cuántas soluciones tiene este sistema?",s:"x + y = 7<br>2x + 2y = 14",o:["Infinitas","Una sola","Ninguna","Exactamente dos"],e:"1/2 = 1/2 = 7/14: las tres razones son iguales, son la misma recta → infinitas soluciones."},
+{q:"¿Cuántas soluciones tiene este sistema?",s:"x + y = 7<br>x + y = 9",o:["Ninguna","Una sola","Infinitas","Dos"],e:"1/1 = 1/1 pero 7/9 es distinto: rectas paralelas, nunca se cortan → sistema incompatible."},
+{q:"Sofía dice: “Todo sistema de 2 ecuaciones lineales con 2 incógnitas tiene exactamente una solución”. ¿Es cierto?",o:["No: puede tener una, ninguna o infinitas","Sí, siempre tiene una","Sí, pero a veces es negativa","No: siempre tiene infinitas"],e:"Dos rectas pueden cortarse (1 solución), ser paralelas (0) o coincidir (infinitas)."},
+{q:"El sistema tiene <b>infinitas soluciones</b>. Halla <b>k</b>:",s:"(2k − 1)x + ky = 6<br>7,5x + 4y = 3",o:["8","6","4","10"],e:"Igualamos razones: k/4 = 6/3 = 2 → k = 8. Comprobación: 2k − 1 = 15 = 7,5 · 2 ✓."},
+{q:"🔥 RETO: ¿qué valor de <b>m</b> hace el sistema incompatible?",s:"x + my = 1<br>mx − 3my = 2m + 3",o:["m = 0","m = −3","m = 1","m = 3"],e:"Si m = −3 las dos ecuaciones son iguales (infinitas soluciones). Si m = 0: x = 1 y 0 = 3, imposible → incompatible."}
+];
+const app=document.getElementById("app");
+let order,i,score,streak,best=0,name="";
+try{best=+localStorage.getItem("sisBest")||0}catch(e){}
+const shuf=a=>{a=a.slice();for(let j=a.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[a[j],a[k]]=[a[k],a[j]]}return a};
+function start(){order=shuf(Q.map((_,k)=>k));i=0;score=0;streak=0;show()}
+function home(){app.innerHTML=`<h1>🧮 Reto: Sistemas de Ecuaciones</h1>
+<p class="mut">2.° de Secundaria · 10 preguntas · puedes jugar las veces que quieras (las preguntas y respuestas cambian de orden).</p>
+<p>Tip: resuelve en tu cuaderno y luego marca. Si fallas, lee la explicación y vuelve a intentarlo.</p>
+<input id="nm" placeholder="Escribe tu nombre (opcional)" maxlength="30">
+<p class="mut">${best?"Tu mejor puntaje en este equipo: "+best+" / 10":""}</p>
+<button class="main" onclick="name=document.getElementById('nm').value.trim();start()">¡Empezar!</button>`}
+function show(){
+  const d=Q[order[i]],opts=shuf(d.o.map((t,k)=>({t,c:k===0})));
+  app.innerHTML=`<div class="top"><span>Pregunta ${i+1} de ${Q.length}</span><span>⭐ ${score} ${streak>1?" · 🔥 racha "+streak:""}</span></div>
+  <div class="bar"><i style="width:${i/Q.length*100}%"></i></div>
+  <p>${d.q}</p>${d.s?`<div class="sys">${d.s}</div>`:""}
+  <div id="ops">${opts.map((o,k)=>`<button data-k="${k}">${o.t}</button>`).join("")}</div><div id="fb"></div>`;
+  app.querySelectorAll("#ops button").forEach(b=>b.onclick=()=>{
+    const o=opts[+b.dataset.k];
+    app.querySelectorAll("#ops button").forEach((x,k)=>{x.disabled=true;if(opts[k].c)x.classList.add("ok")});
+    if(o.c){score++;streak++;b.classList.add("ok")}else{streak=0;b.classList.add("no")}
+    document.getElementById("fb").innerHTML=`<div class="fb ${o.c?"ok":"no"}"><b>${o.c?"¡Correcto!":"Casi… revisa:"}</b> ${d.e}</div>
+    <button class="main" id="nx">${i+1<Q.length?"Siguiente →":"Ver mi resultado"}</button>`;
+    document.getElementById("nx").onclick=()=>{i++;i<Q.length?show():end()};
+  });
+}
+function end(){
+  if(score>best){best=score;try{localStorage.setItem("sisBest",score)}catch(e){}}
+  const m=score==10?["🏆","¡Perfecto! Eres un/a experto/a en sistemas."]:score>=8?["🎉","¡Excelente! Dominas el tema."]:score>=6?["👍","¡Bien! Repasa las preguntas que fallaste y vuelve a jugar."]:["💪","Sigue practicando: lee la guía de métodos y vuelve a intentarlo."];
+  app.innerHTML=`<div class="big">${m[0]}</div><h1 style="text-align:center">${name?name+", t":"T"}u puntaje: ${score} / ${Q.length}</h1>
+  <p style="text-align:center">${m[1]}</p><p class="mut" style="text-align:center">Mejor puntaje: ${best} / 10</p>
+  <button class="main" onclick="start()">🔄 Jugar otra vez</button><button onclick="home()">Volver al inicio</button>`}
+home();
+</script>
+</body>
+</html>
